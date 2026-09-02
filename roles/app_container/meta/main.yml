@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: app_container
+  author: Corey Ducre
+  description: app_container role for Charlotte_2026 configuration management
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+    - name: Ubuntu
+      versions:
+        - noble
+  galaxy_tags: []
+
+dependencies: []
