@@ -32,7 +32,7 @@
 - name: Write systemd environment file (holds the secret, root-only)
   ansible.builtin.copy:
     dest: "/etc/{{ app_container_name }}.env"
-    content: "SECRET_VALUE={{ secret_value }}\n"
+    content: "{{ app_container_secret_env_var }}={{ secret_value }}\n"
     owner: root
     group: root
     mode: "0600"
