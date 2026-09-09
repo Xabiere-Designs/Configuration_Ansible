@@ -6,9 +6,6 @@ After=docker.service
 [Service]
 Restart=always
 RestartSec=5
-{% if app_container_secret_env_var %}
-EnvironmentFile=/etc/{{ app_container_name }}.env
-{% endif %}
 # Clean up any prior container before starting
 ExecStartPre=-/usr/bin/docker stop {{ app_container_name }}
 ExecStartPre=-/usr/bin/docker rm {{ app_container_name }}
@@ -18,7 +15,7 @@ ExecStart=/usr/bin/docker run --rm --name {{ app_container_name }} \
   -e {{ key }}={{ value }} \
 {% endfor %}
 {% if app_container_secret_env_var %}
-  -e {{ app_container_secret_env_var }}=${SECRET_VALUE} \
+  --env-file /etc/{{ app_container_name }}.env \
 {% endif %}
   {{ app_container_image }}
 ExecStop=/usr/bin/docker stop {{ app_container_name }}
