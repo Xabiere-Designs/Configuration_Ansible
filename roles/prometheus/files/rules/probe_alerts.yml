@@ -1,0 +1,10 @@
+groups:
+  - name: probe_alerts
+    rules:
+      - alert: EndpointProbeFailing
+        expr: probe_success == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }} health probe failing"
