@@ -18,3 +18,23 @@ scrape_configs:
 {% for host in node_exporter_targets | default([]) %}
           - '{{ host }}:9100'
 {% endfor %}
+
+{% if blackbox_http_targets | default([]) | length > 0 %}
+
+  - job_name: 'blackbox_http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx_actuator]
+    static_configs:
+      - targets:
+{% for target in blackbox_http_targets %}
+          - '{{ target }}'
+{% endfor %}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 127.0.0.1:9115
+{% endif %}

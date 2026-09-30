@@ -1,0 +1,72 @@
+---
+- name: Create prometheus user
+  ansible.builtin.user:
+    name: prometheus
+    shell: /bin/false
+    create_home: false
+    system: true
+
+- name: Download Blackbox Exporter
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/blackbox_exporter/releases/download/v0.25.0/blackbox_exporter-0.25.0.linux-amd64.tar.gz"
+    dest: /tmp/blackbox_exporter-0.25.0.linux-amd64.tar.gz
+    mode: "0644"
+
+- name: Extract Blackbox Exporter
+  ansible.builtin.unarchive:
+    src: /tmp/blackbox_exporter-0.25.0.linux-amd64.tar.gz
+    dest: /tmp
+    remote_src: true
+
+- name: Copy Blackbox Exporter binary
+  ansible.builtin.copy:
+    src: /tmp/blackbox_exporter-0.25.0.linux-amd64/blackbox_exporter
+    dest: /usr/local/bin/blackbox_exporter
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+    remote_src: true
+
+- name: Create Blackbox config directory
+  ansible.builtin.file:
+    path: /etc/blackbox_exporter
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+
+- name: Copy Blackbox config
+  ansible.builtin.copy:
+    src: blackbox.yml
+    dest: /etc/blackbox_exporter/blackbox.yml
+    owner: prometheus
+    group: prometheus
+    mode: "0644"
+
+- name: Create Blackbox Exporter systemd service
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/blackbox_exporter.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Prometheus Blackbox Exporter
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=prometheus
+      Group=prometheus
+      Type=simple
+      ExecStart=/usr/local/bin/blackbox_exporter \
+        --config.file=/etc/blackbox_exporter/blackbox.yml \
+        --web.listen-address=127.0.0.1:9115
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable and start Blackbox Exporter
+  ansible.builtin.systemd:
+    name: blackbox_exporter
+    enabled: true
+    state: restarted
+    daemon_reload: true
